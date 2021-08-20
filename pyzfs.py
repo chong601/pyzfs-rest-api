@@ -51,6 +51,38 @@ def zfs_list(name=None, sort_ascending: tuple=None, depth: int=None, property: l
     for row in result_dict:
         print(row)
 
+def zpool_list(name=None):
+    
+    # Force enable tab-delimited data
+    cmdline = ['zpool', 'list', '-H', '-p']
+    # Define default columns that ZFS has
+    columns = ['name', 'size', 'allocated', 'free', 'checkpoint', 'expandsize', 'fragmentation', 'capacity', 'dedupratio', 'health', 'altroot']
+    if name:
+        cmdline.append(name)
+    print(cmdline)
+    result = subprocess.run(cmdline, universal_newlines=True, capture_output=True)
+    print(result.returncode)
+    if result.returncode != 0:
+        return f'Error from zpool: {result.stderr}'
+    result_arr = result.stdout.strip().split('\n')
+    result_dict = csv.DictReader(result_arr, columns, delimiter='\t')
+    
+    final_result = []
+
+    for row in result_dict:
+        real_result_dict = {}
+        for k, v in row.items():
+            if k == 'expandsize' and v == '-':
+                real_result_dict[k] = 0
+            else:
+                real_result_dict[k] = v
+        final_result.append(real_result_dict)
+
+    if len(final_result) > 1:
+        return final_result
+    else:
+        return final_result[0]
+
 def zpool_trim(pool: str, device: List[str]=None, secure: bool=False, rate: bool=None, wait: bool=False, suspend: bool=False, cancel: bool=False):
     cmdline = ['zpool', 'trim']
     if secure:
@@ -89,7 +121,7 @@ def zpool_trim(pool: str, device: List[str]=None, secure: bool=False, rate: bool
         raise Exception('No dataset found')
     result_arr = result.stdout.strip().split('\n')
 
-def zfs_get_version():
+def zfs_get_running_version():
     result = subprocess.run(['zpool', '--version'], universal_newlines=True, capture_output=True)
     if result.returncode != 0:
         raise Exception(f'Error from zpool: {result.stderr}')
