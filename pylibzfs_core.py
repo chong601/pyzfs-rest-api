@@ -18,6 +18,9 @@ def lzc_clone(name: str, origin: str, props={}):
 def lzc_promote(name):
     libzfs_core.lzc_promote(bytes(name, 'utf-8'))
 
+def lzc_exists(name):
+    return libzfs_core.lzc_exists(bytes(name, 'utf-8'))
+    
 def lzc_rename(source, target):
     libzfs_core.lzc_rename(bytes(source, 'utf-8'), bytes(target, 'utf-8'))
 
