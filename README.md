@@ -13,15 +13,15 @@ ABI support between pyzfs-rest-api and libzfs_core will depend on how complicate
 # `libzfs_core` status
 | Function name | Status | Notes|
 | - | - | - |
-lzc_create | Broken | Throws error during creation for non-root user|
-lzc_clone | Broken | Throws error during creation for non-root user |
-lzc_promote | Unknown | |
-lzc_rename | Unknown | |
-lzc_destroy | Unknown | |
-lzc_snapshot | Unknown | |
+lzc_create | Works | Requires root |
+lzc_clone | Works | Requires root |
+lzc_promote | Works | May work without root |
+lzc_rename | Works | Requires root |
+lzc_destroy | Works | Requires root |
+lzc_snapshot | Works | Requires root |
 lzc_destroy_snap | Unknown | |
 lzc_snaprange_space | Unknown | |
-lzc_exists | Unknown | |
+lzc_exists | Works | Not exposed on zpool/zfs |
 lzc_sync | Unknown | |
 lzc_hold | Unknown | |
 lzc_release | Unknown | |
