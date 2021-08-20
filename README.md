@@ -22,7 +22,7 @@ lzc_snapshot | Works | Requires root |
 lzc_destroy_snap | Unknown | |
 lzc_snaprange_space | Unknown | |
 lzc_exists | Works | Not exposed on zpool/zfs |
-lzc_sync | Unknown | |
+lzc_sync | Works | Can be executed by non-root users |
 lzc_hold | Unknown | |
 lzc_release | Unknown | |
 lzc_get_holds | Unknown | |
@@ -37,8 +37,8 @@ lzc_receive_resumable | Unknown | |
 lzc_receive_with_header | Unknown | |
 lzc_receive_one | Unknown | |
 lzc_receive_with_cmdprops | Unknown | |
-lzc_rollback | Unknown | |
-lzc_rollback_to | Unknown | |
+lzc_rollback | Works | Requires root |
+lzc_rollback_to | Works | Requires root |
 lzc_bookmark | Unknown | |
 lzc_get_bookmarks | Unknown | |
 lzc_get_bookmark_props | Unknown | |
@@ -53,7 +53,7 @@ lzc_unload_key | Unknown | |
 lzc_change_key | Unknown | |
 lzc_reopen | Unknown | |
 lzc_initialize | Unknown | |
-lzc_trim | Unknown | |
+lzc_trim | NOT AVAILABLE | Missing from libzfs_core. Requires port-in to libzfs_core |
 lzc_redact | Unknown | |
 lzc_wait | Unknown | |
 lzc_wait_tag | Unknown | |
@@ -64,7 +64,8 @@ lzc_get_bootenv | Unknown | |
 # `pyzfs` implementation
 | Function name | Status | Notes |
 | - | - | - |
-| zfs_list | Done | Pending unit tests|
+| zfs_list | Done | Pending unit tests |
+| zfs_trim | Done | Alternative implementation to lzc_trim which is missing in `libzfs_core` |
 
 # Why the split between libzfs_core and pyzfs?
 Simple.
