@@ -1,6 +1,7 @@
 import subprocess
 # We import CSV, but we'll be doing TSV, really
 import csv
+from typing import List
 
 def zfs_list(name=None, sort_ascending: tuple=None, depth: int=None, property: list=None, recursive=False, type=['filesystem']):
     
@@ -49,8 +50,48 @@ def zfs_list(name=None, sort_ascending: tuple=None, depth: int=None, property: l
     result_dict = csv.DictReader(result_arr, columns, delimiter='\t')
     for row in result_dict:
         print(row)
-    
 
-        
-        
+def zpool_trim(pool: str, device: List[str]=None, secure: bool=False, rate: bool=None, wait: bool=False, suspend: bool=False, cancel: bool=False):
+    cmdline = ['zpool', 'trim']
+    if secure:
+        if cancel:
+            print('Ignoring cancel argument...')
+            cancel=None
+        if suspend:
+            print('Ignoring suspend argument...')
+            suspend=None
+        cmdline.append(['-d'])
+    if rate:
+        if not isinstance(rate, int):
+            raise TypeError
+        cmdline.extend(['-r', rate])
+    if wait:
+        if suspend or cancel:
+            raise Exception('Cannot raise suspend or cancel with wait')
+        cmdline.append('-w')
+    if suspend:
+        if cancel:
+            raise Exception('Cannot invoke suspend and cancel at the same time')
+        cmdline.append('-s')
+    if cancel:
+        if suspend:
+            raise Exception('Cannot invoke suspend and cancel at the same time')
+        cmdline.append('-c')
+    cmdline.append(pool)
+    if device:
+        cmdline.extend(device)
+    print(cmdline)
+    result = subprocess.run(cmdline, universal_newlines=True, capture_output=True)
+    print(result.returncode)
+    if result.returncode != 0:
+        raise Exception(f'Error from zfs: {result.stderr}')
+    if result.stdout.startswith('no'):
+        raise Exception('No dataset found')
+    result_arr = result.stdout.strip().split('\n')
 
+def zfs_get_version():
+    result = subprocess.run(['zpool', '--version'], universal_newlines=True, capture_output=True)
+    if result.returncode != 0:
+        raise Exception(f'Error from zpool: {result.stderr}')
+    version_data = result.stdout.strip().split('\n')
+    return {'zpool_version': version_data[0], 'module_version': version_data[1]}
