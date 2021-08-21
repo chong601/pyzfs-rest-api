@@ -2,16 +2,16 @@ import subprocess
 # We import CSV, but we'll be doing TSV, really
 import csv
 from typing import List
+from flask_restx.errors import abort
 
-def zfs_list(name=None, sort_ascending: tuple=None, depth: int=None, property: list=None, recursive=False, type=['filesystem']):
+def zfs_list(name=None, sort_order:str=None, depth: int=None, property: list=None, recursive=False, type=None, detail=False):
     
-    # Force enable tab-delimited data
-    cmdline = ['zfs', 'list', '-H', '-p']
-    # Define default columns that ZFS has
-    columns = ['name', 'used', 'avail', 'refer', 'mountpoint']
+    # No need for tab-delimited data, just YOLO parse it
+    cmdline = ['zfs', 'list', '-p']
     # Handle sorting
-    if sort_ascending:
-        sort_prop, sort_order = sort_ascending
+    if sort_order:
+        sort_prop, sort_order = sort_order.split(',',1)
+        sort_order = bool(sort_order)
         sort_cmd = []
         if sort_order:
             sort_cmd.append('-s')
@@ -26,9 +26,10 @@ def zfs_list(name=None, sort_ascending: tuple=None, depth: int=None, property: l
             cmdline.extend(['-d', str(depth)])
     # Handle property
     if property:
-        cmdline.append('-o')
-        cmdline.extend(property)
-        columns = property
+        property_list = ','.join(property)
+        cmdline.extend(['-o', property_list])
+    elif detail:
+        cmdline.extend(['-o', 'all'])
     # Handle recursion
     if recursive:
         cmdline.append('-r')
@@ -43,23 +44,33 @@ def zfs_list(name=None, sort_ascending: tuple=None, depth: int=None, property: l
     result = subprocess.run(cmdline, universal_newlines=True, capture_output=True)
     print(result.returncode)
     if result.returncode != 0:
-        raise Exception(f'Error from zfs: {result.stderr}')
-    if result.stdout.startswith('no'):
-        raise Exception('No dataset found')
-    result_arr = result.stdout.strip().split('\n')
-    result_dict = csv.DictReader(result_arr, columns, delimiter='\t')
-    for row in result_dict:
-        print(row)
+        abort(404, **{'error': f'Error from zfs: {result.stderr.strip()}'})
+
+    # BEGIN horrible code
+    result_arr = result.stdout.strip().splitlines()
+    result_header = result_arr[0].split(None)
+    result_body = [row.split(None) for row in result_arr[1:]]
+    final_result = []
+    for row in result_body:
+        data_dict = {}
+        for idx, data in enumerate(row, 0):
+            data_dict.update({result_header[idx]: data})
+            
+        final_result.append(data_dict)
+    # TODO: Handle data conversion
+
+    # END horrible code
+    return final_result
 
 def zpool_list(name=None, props=[], detail=False):
     
-    # Force enable tab-delimited data
+    # No need for tab-delimited data, just YOLO parse it
     cmdline = ['zpool', 'list', '-p']
     # Define default columns that ZFS has
     if props:
-        columns = props
+        prop_str = ','.join(props)
+        cmdline.extend(['-o', prop_str])
     elif detail:
-        columns = ['all']
         cmdline.extend(['-o', 'all'])
     if name:
         cmdline.append(name)
@@ -78,8 +89,10 @@ def zpool_list(name=None, props=[], detail=False):
         data_dict = {}
         for idx, data in enumerate(row, 0):
             data_dict.update({result_header[idx]: data})
+
         final_result.append(data_dict)
     # TODO: Handle data conversion
+
     # END horrible code
     return final_result
 
@@ -99,15 +112,15 @@ def zpool_trim(pool: str, device: List[str]=None, secure: bool=False, rate: bool
         cmdline.extend(['-r', rate])
     if wait:
         if suspend or cancel:
-            raise Exception('Cannot raise suspend or cancel with wait')
+            abort(403, error='Cannot invoke suspend and cancel at the same time')
         cmdline.append('-w')
     if suspend:
         if cancel:
-            raise Exception('Cannot invoke suspend and cancel at the same time')
+            abort(403, error='Cannot invoke suspend and cancel at the same time')
         cmdline.append('-s')
     if cancel:
         if suspend:
-            raise Exception('Cannot invoke suspend and cancel at the same time')
+            abort(403, error='Cannot invoke suspend and cancel at the same time')
         cmdline.append('-c')
     cmdline.append(pool)
     if device:

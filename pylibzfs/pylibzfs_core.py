@@ -20,7 +20,7 @@ def lzc_promote(name):
 
 def lzc_exists(name):
     return libzfs_core.lzc_exists(bytes(name, 'utf-8'))
-    
+
 def lzc_rename(source, target):
     libzfs_core.lzc_rename(bytes(source, 'utf-8'), bytes(target, 'utf-8'))
 
@@ -35,6 +35,3 @@ def lzc_rollback(name):
 
 def lzc_rollback(name, snap):
     libzfs_core.lzc_rollback_to(bytes(name, 'utf-8'), bytes(snap, 'utf-8'))
-
-def lzc_trim():
-    libzfs_core.lzc_trim
