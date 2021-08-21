@@ -64,7 +64,8 @@ lzc_get_bootenv | Unknown | |
 # `pyzfs` implementation
 | Function name | Status | Notes |
 | - | - | - |
-| zfs_list | Done | Pending unit tests |
+| zfs_list | Pending | Lack of sleep sucks |
+| zpool_list | Partially done | Needs more testing on properties |
 | zfs_trim | Done | Alternative implementation to lzc_trim which is missing in `libzfs_core` |
 
 # Why the split between libzfs_core and pyzfs?
