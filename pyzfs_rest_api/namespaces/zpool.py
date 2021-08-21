@@ -1,7 +1,7 @@
 from flask_restx import Namespace, fields, Resource, abort
 from flask_restx.marshalling import marshal_with
-from pyzfs import zpool_list, zfs_get_running_version, zpool_list_model
-from pylibzfs_core import lzc_exists
+from pylibzfs.pyzfs import zpool_list
+from pylibzfs.pylibzfs_core import lzc_exists
 
 api = Namespace('zpool', 'Operations related to zpool')
 
@@ -30,6 +30,7 @@ zpool_list_model = api.model('zpool_list', {
     'delegation': fields.String(title='delegation', description='Pool delegation setting'),
     'failmode': fields.String(title='failmode', description='Pool behavior when pool failure occurs'),
     # Skip feature for now.
+    # O GOD. THERE'S A LOT OF FEATURES
     'listsnapshots': fields.String(title='listsnapshots', description='Whether to list snapshot on zfs list'),
     'multihost': fields.String(title='multihost', description='Whether the pool will be checked during import to prevent importing an active pool'),
     'version': fields.Integer(title='version', description='Version of the pool (legacy ZFS only)')
@@ -37,18 +38,27 @@ zpool_list_model = api.model('zpool_list', {
 
 
 @api.route('/list')
-class ZFSList(Resource):
+class ZpoolList(Resource):
 
-    @api.marshal_with(zpool_list_model, as_list=True, skip_none=True)
     def get(self):
         return zpool_list()
 
-@api.route('/list/<name>')
-class ZFSListByName(Resource):
 
-    @api.marshal_with(zpool_list_model, as_list=True, skip_none=True)
-    
+@api.route('/list/<name>')
+class ZpoolListByName(Resource):
+
     def get(self, name):
         if not lzc_exists(name):
             abort(404, error=f"Pool '{name}' not found")
-        return 
+        return zpool_list(name)
+
+
+@api.route('/list/<name>/detail')
+class ZpoolListByNameDetail(Resource):
+
+    # @api.marshal_with(zpool_list_model, as_list=True, skip_none=True)
+    def get(self, name):
+        if not lzc_exists(name):
+            abort(404, error=f"Pool '{name}' not found")
+        result = zpool_list(name, detail=True)
+        return result
