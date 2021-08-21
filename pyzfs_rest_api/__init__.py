@@ -14,5 +14,7 @@ api = Api(app, 'alpha', 'PyZFS REST API', 'A thin wrapper that extends ZFS files
 
 
 from pyzfs_rest_api.namespaces.zpool import api as zpool_api
+from pyzfs_rest_api.namespaces.zfs import api as zfs_api
 
 api.add_namespace(zpool_api)
+api.add_namespace(zfs_api)
