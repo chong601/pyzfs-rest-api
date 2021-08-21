@@ -51,12 +51,16 @@ def zfs_list(name=None, sort_ascending: tuple=None, depth: int=None, property: l
     for row in result_dict:
         print(row)
 
-def zpool_list(name=None):
+def zpool_list(name=None, props=[], detail=False):
     
     # Force enable tab-delimited data
-    cmdline = ['zpool', 'list', '-H', '-p']
+    cmdline = ['zpool', 'list', '-p']
     # Define default columns that ZFS has
-    columns = ['name', 'size', 'allocated', 'free', 'checkpoint', 'expandsize', 'fragmentation', 'capacity', 'dedupratio', 'health', 'altroot']
+    if props:
+        columns = props
+    elif detail:
+        columns = ['all']
+        cmdline.extend(['-o', 'all'])
     if name:
         cmdline.append(name)
     print(cmdline)
@@ -64,24 +68,20 @@ def zpool_list(name=None):
     print(result.returncode)
     if result.returncode != 0:
         return f'Error from zpool: {result.stderr}'
-    result_arr = result.stdout.strip().split('\n')
-    result_dict = csv.DictReader(result_arr, columns, delimiter='\t')
-    
+
+    # BEGIN horrible code
+    result_arr = result.stdout.strip().splitlines()
+    result_header = result_arr[0].split(None)
+    result_body = [row.split(None) for row in result_arr[1:]]
     final_result = []
-
-    for row in result_dict:
-        real_result_dict = {}
-        for k, v in row.items():
-            if k == 'expandsize' and v == '-':
-                real_result_dict[k] = 0
-            else:
-                real_result_dict[k] = v
-        final_result.append(real_result_dict)
-
-    if len(final_result) > 1:
-        return final_result
-    else:
-        return final_result[0]
+    for row in result_body:
+        data_dict = {}
+        for idx, data in enumerate(row, 0):
+            data_dict.update({result_header[idx]: data})
+        final_result.append(data_dict)
+    # TODO: Handle data conversion
+    # END horrible code
+    return final_result
 
 def zpool_trim(pool: str, device: List[str]=None, secure: bool=False, rate: bool=None, wait: bool=False, suspend: bool=False, cancel: bool=False):
     cmdline = ['zpool', 'trim']
