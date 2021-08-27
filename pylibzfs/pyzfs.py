@@ -4,6 +4,15 @@ import csv
 from typing import List
 from flask_restx.errors import abort
 
+"""
+pyzfs is the pure-Python implementation of interfacing with ZFS through userspace applications
+
+Some extra functionalities that libzfs_core doesn't provide that can be implemented
+will be done on this module.
+
+The argument parser may not be perfect, but should cater most common simple tasks _for now_
+"""
+
 def zfs_list(name=None, sort_order:str=None, depth: int=None, property: list=None, recursive=False, type=None, detail=False):
     
     # No need for tab-delimited data, just YOLO parse it
@@ -40,9 +49,7 @@ def zfs_list(name=None, sort_order:str=None, depth: int=None, property: list=Non
     # Handle name
     if name:
         cmdline.append(name)
-    print(cmdline)
     result = subprocess.run(cmdline, universal_newlines=True, capture_output=True)
-    print(result.returncode)
     if result.returncode != 0:
         abort(404, **{'error': f'Error from zfs: {result.stderr.strip()}'})
 
@@ -74,9 +81,7 @@ def zpool_list(name=None, props=[], detail=False):
         cmdline.extend(['-o', 'all'])
     if name:
         cmdline.append(name)
-    print(cmdline)
     result = subprocess.run(cmdline, universal_newlines=True, capture_output=True)
-    print(result.returncode)
     if result.returncode != 0:
         return f'Error from zpool: {result.stderr}'
 
