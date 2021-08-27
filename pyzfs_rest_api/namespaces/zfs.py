@@ -101,7 +101,6 @@ zfs_request_model = api.model('zfs_request', {
 class ZFSList(Resource):
     @api.expect(zfs_request_model)
     def post(self):
-        print(request.get_data())
         if not request.is_json:
             abort(400, error='Must be JSON')
         kw_args = {}
@@ -116,7 +115,6 @@ class ZFSList(Resource):
             kw_args['property'] = data['property']
         if 'type' in data:
             kw_args['type'] = data['type']
-        print(kw_args)
         return zfs_list(**kw_args)
 
 
