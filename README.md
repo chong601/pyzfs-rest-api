@@ -10,8 +10,8 @@ API implementation will be considered stable if the interface is at least compat
 
 ABI support between pyzfs-rest-api and libzfs_core will depend on how complicated pyzfs is (might need to learn cffi *shudders*)
 
-# `libzfs_core` status
-| Function name | Status | Notes|
+# `libzfs_core` status (through `pylibzfs_core`)
+| Function name | Status | Notes |
 | - | - | - |
 lzc_create | Works | Requires root |
 lzc_clone | Works | Requires root |
@@ -23,9 +23,9 @@ lzc_destroy_snap | Unknown | |
 lzc_snaprange_space | Unknown | |
 lzc_exists | Works | Not exposed on zpool/zfs |
 lzc_sync | Works | Can be executed by non-root users |
-lzc_hold | Unknown | |
-lzc_release | Unknown | |
-lzc_get_holds | Unknown | |
+lzc_hold | Done | Code exists, not tested |
+lzc_release | Done | Code exists, not tested |
+lzc_get_holds | Done | Code exists, not tested |
 lzc_send | Unknown | |
 lzc_send_redacted | Unknown | |
 lzc_send_resume | Unknown | |
@@ -72,6 +72,10 @@ lzc_get_bootenv | Unknown | |
 Simple.
 
 libzfs_core only implements subset of ZFS functions that is offered by ZFS (for now).
+The idea of libzfs_core is to provide a stable API for any applications that want to interact with
+core ZFS features.
+
+Sadly the libzfs_core development is slow, which makes extending ZFS much more difficult.
 
 Anything that `libzfs_core` does not cover will be implemented on `pyzfs` until C function replacements is available.
 # Plans
