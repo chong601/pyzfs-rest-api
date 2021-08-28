@@ -1,8 +1,7 @@
 import subprocess
-# We import CSV, but we'll be doing TSV, really
-import csv
 from typing import List
 from flask_restx.errors import abort
+from .data_reformatter import ZPOOL_LIST, ZFS_LIST
 
 """
 pyzfs is the pure-Python implementation of interfacing with ZFS through userspace applications
@@ -54,15 +53,17 @@ def zfs_list(name=None, sort_order:str=None, depth: int=None, property: list=Non
         abort(404, **{'error': f'Error from zfs: {result.stderr.strip()}'})
 
     # BEGIN horrible code
+    # Strip last new line, then split by new lines
     result_arr = result.stdout.strip().splitlines()
-    result_header = result_arr[0].split(None)
+    # Split by any whitespace, then lowercase the headers
+    # ZFS commands always return the header names in ALL CAPS
+    result_header = [row.lower() for row in result_arr[0].split(None)]
     result_body = [row.split(None) for row in result_arr[1:]]
     final_result = []
     for row in result_body:
         data_dict = {}
         for idx, data in enumerate(row, 0):
-            data_dict.update({result_header[idx]: data})
-            
+            data_dict.update({ZFS_LIST.get(result_header[idx], result_header[idx]): data})
         final_result.append(data_dict)
     # TODO: Handle data conversion
 
@@ -86,15 +87,17 @@ def zpool_list(name=None, props=[], detail=False):
         return f'Error from zpool: {result.stderr}'
 
     # BEGIN horrible code
+    # Strip last new line, then split by new lines
     result_arr = result.stdout.strip().splitlines()
-    result_header = result_arr[0].split(None)
+    # Split by any whitespace, then lowercase the headers
+    # ZFS commands always return the header names in ALL CAPS
+    result_header = [row.lower() for row in result_arr[0].split(None)]
     result_body = [row.split(None) for row in result_arr[1:]]
     final_result = []
     for row in result_body:
         data_dict = {}
         for idx, data in enumerate(row, 0):
-            data_dict.update({result_header[idx]: data})
-
+            data_dict.update({ZPOOL_LIST.get(result_header[idx], result_header[idx]): data})
         final_result.append(data_dict)
     # TODO: Handle data conversion
 
