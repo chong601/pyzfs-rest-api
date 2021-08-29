@@ -7,6 +7,28 @@ from urllib.parse import unquote
 
 api = Namespace('zfs', 'Operations related to zfs')
 
+zfs_list_model = api.model('zfs_list', {
+    'type': fields.String(title='ZFS dataset type', example='filesystem | snapshot | volume'),
+    'creation': fields.Integer(title='Creation timestamp'),
+    'used': fields.Integer(title='Used space', description='Value in bytes'),
+    'available': fields.Integer(title='Available space available to dataset and all its children', description='Value in bytes'),
+    'referenced': fields.Integer(title='Referenced space', description='Value in bytes'),
+    'compressratio': fields.Float(title='Compression ratio for dataset and the descendents'),
+    'mounted': fields.Boolean(title='Mounted status'),
+    'quota': fields.Integer(title='Amount the space the dataset and its descendents can use'),
+    'reservation': fields.Integer(title='Minimum amount of space guaranteed to a dataset and its descendents'),
+    'recordsize': fields.Integer('Dataset recordsize'),
+    'mountpoint': fields.String(title='Mount point location for the dataset'),
+    'sharenfs': fields.String(title='Indicates whether the dataset is shared over NFS', description='Valid values are on, off or NFS options'),
+    'checksum': fields.String(title='Dataset checksum configuration'),
+    'compression': fields.String(title='Dataset compression configuration'),
+    'atime': fields.Boolean(title='atime configuration for dataset'),
+    'devices': fields.Boolean(title='Dataset device node support', description='Equivalent to "dev" and "nodev" mount options'),
+    'exec': fields.Boolean(title='Dataset process execution support', description='Equivalent to "exec" and "noexec" mount options'),
+    'setuid': fields.String(title='Dataset setuid support', description='Equivalent to "suid" and "nosuid" mount options'),
+    'readonly': fields.Boolean(title='Dataset read only status', description='Equivalent to "ro" and "rw" mount options'),
+    'zoned': fields.Boolean(title='Whether this dataset is managed from Solaris zones.', description='Not relevant in non-Solaris systems'),
+    'snapdir': fields.String(title='Visibility of .zfs directory on the root of the filesystem')
 # zfs_list_model = api.model('zfs_list', {
 
 
@@ -84,6 +106,7 @@ api = Namespace('zfs', 'Operations related to zfs')
 #     'special_small_blocks'
 
 # })
+})
 
 """
 name=None, sort_ascending:str=None, depth: int=None, property: list=None, recursive=False, type=None, detail=False
@@ -116,6 +139,3 @@ class ZFSList(Resource):
         if 'type' in data:
             kw_args['type'] = data['type']
         return zfs_list(**kw_args)
-
-
-
